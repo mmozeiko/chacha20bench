@@ -18,7 +18,13 @@ typedef uint32_t u32;
 #include "kernel/chacha.h"
 #include "kernel/chacha_glue.c"
 
-void chacha20_kernel(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size)
+#ifdef __AVX512F__
+#define NAME chacha20_kernel_avx512
+#else
+#define NAME chacha20_kernel
+#endif
+
+void NAME(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size)
 {
     u32 state[CHACHA_STATE_WORDS];
     

@@ -73,14 +73,14 @@ typedef struct
  * called once when the program starts (e.g., to build expanded S-box
  * tables).
  */
-void ECRYPT_init();
+//void ECRYPT_init();
 
 /*
  * Key setup. It is the user's responsibility to select the values of
  * keysize and ivsize from the set of supported values specified
  * above.
  */
-void ECRYPT_keysetup(
+static void ECRYPT_keysetup(
   ECRYPT_ctx* ctx, 
   const u8* key, 
   u32 keysize,                /* Key size in bits. */ 
@@ -92,7 +92,7 @@ void ECRYPT_keysetup(
  * encrypt/decrypt different messages with the same key but different
  * IV's.
  */
-void ECRYPT_ivsetup(
+static void ECRYPT_ivsetup(
   ECRYPT_ctx* ctx, 
   const u8* iv);
 
@@ -134,20 +134,20 @@ void ECRYPT_ivsetup(
  * ECRYPT_encrypt_blocks();
  */
 
-void ECRYPT_encrypt_bytes(
+static void ECRYPT_encrypt_bytes(
   ECRYPT_ctx* ctx, 
   const u8* plaintext, 
   u8* ciphertext, 
   u32 msglen);                /* Message length in bytes. */ 
 
-void ECRYPT_decrypt_bytes(
-  ECRYPT_ctx* ctx, 
-  const u8* ciphertext, 
-  u8* plaintext, 
-  u32 msglen);                /* Message length in bytes. */ 
+//void ECRYPT_decrypt_bytes(
+//  ECRYPT_ctx* ctx, 
+//  const u8* ciphertext, 
+//  u8* plaintext, 
+//  u32 msglen);                /* Message length in bytes. */ 
 
 /* ------------------------------------------------------------------------- */
-
+#if 0
 /* Optional features */
 
 /* 
@@ -276,6 +276,7 @@ void ECRYPT_keystream_blocks(
 #error this variant does not exist
 #endif
 
+#endif
 /* ------------------------------------------------------------------------- */
 
 #endif

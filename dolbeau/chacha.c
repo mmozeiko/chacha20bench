@@ -42,15 +42,10 @@ static void salsa20_wordtobyte(u8 output[64],const u32 input[16])
   for (i = 0;i < 16;++i) U32TO8_LITTLE(output + 4 * i,x[i]);
 }
 
-void ECRYPT_init(void)
-{
-  return;
-}
-
 static const char sigma[16] = "expand 32-byte k";
 static const char tau[16] = "expand 16-byte k";
 
-void ECRYPT_keysetup(ECRYPT_ctx *x,const u8 *k,u32 kbits,u32 ivbits)
+static void ECRYPT_keysetup(ECRYPT_ctx *x,const u8 *k,u32 kbits,u32 ivbits)
 {
   const char *constants;
 
@@ -122,16 +117,4 @@ void ECRYPT_encrypt_bytes(ECRYPT_ctx *x_,const u8 *m,u8 *c_,u32 bytes)
     out += 64;
     m += 64;
   }
-}
-
-void ECRYPT_decrypt_bytes(ECRYPT_ctx *x,const u8 *c,u8 *m,u32 bytes)
-{
-  ECRYPT_encrypt_bytes(x,c,m,bytes);
-}
-
-void ECRYPT_keystream_bytes(ECRYPT_ctx *x,u8 *stream,u32 bytes)
-{
-  u32 i;
-  for (i = 0;i < bytes;++i) stream[i] = 0;
-  ECRYPT_encrypt_bytes(x,stream,stream,bytes);
 }
