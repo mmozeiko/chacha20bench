@@ -10,6 +10,7 @@ clang-cl.exe                        ^
   kernel.c                          ^
   openssl.c                         ^
   gcrypt.c                          ^
+  nss.c                             ^
   aesni.c                           ^
   kernel/chacha-avx2-x86_64.S       ^
   kernel/chacha-ssse3-x86_64.S      ^
@@ -30,6 +31,7 @@ clang-cl.exe                        ^
   kernel.c                          ^
   openssl.c                         ^
   gcrypt.c                          ^
+  nss.c                             ^
   aesni.c                           ^
   kernel/chacha-avx2-x86_64.S       ^
   kernel/chacha-avx512vl-x86_64.S   ^

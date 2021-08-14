@@ -18,6 +18,7 @@ void chacha20_sodium(const uint8_t* key, uint64_t counter, const uint8_t* input,
 void chacha20_kernel(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size);
 void chacha20_openssl(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size);
 void chacha20_gcrypt(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size);
+void chacha20_nss(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size);
 void aes256ni(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size);
 
 typedef void chacha20_fn(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size);
@@ -34,6 +35,7 @@ static chacha20 chachas[] = {
     { "kernel",   &chacha20_kernel  },
     { "openssl",  &chacha20_openssl },
     { "gcrypt",   &chacha20_gcrypt  },
+    { "nss",      &chacha20_nss     },
     { "aes256ni", &aes256ni         },
 };
 
