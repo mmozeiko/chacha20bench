@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <stdint.h>
 #include <stdio.h>
+#define _m_prefetchw _m_prefetchw1
 #include <intrin.h>
 
 void chacha20_ref(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size);
@@ -65,6 +66,10 @@ void bench(chacha20 c, const uint8_t* key, uint64_t counter, const uint8_t* inpu
 
 int main()
 {
+#ifdef __AVX512F__
+    printf("*** AVX512 enabled\n");
+#endif
+
     size_t iters = 1024*1024;
     
     size_t size = 4096;

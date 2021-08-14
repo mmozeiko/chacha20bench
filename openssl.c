@@ -21,6 +21,10 @@ void chacha20_openssl(const uint8_t* key, uint64_t counter, const uint8_t* input
         uint64_t vec = OPENSSL_ia32_cpuid(OPENSSL_ia32cap_P);
         OPENSSL_ia32cap_P[0] = (unsigned int)vec | (1 << 10);
         OPENSSL_ia32cap_P[1] = (unsigned int)(vec >> 32);
+#ifndef __AVX512F__
+        OPENSSL_ia32cap_P[1] = OPENSSL_ia32cap_P[1] & ~16;
+        OPENSSL_ia32cap_P[2] = OPENSSL_ia32cap_P[2] & ~(1<<31);
+#endif
         init = 1;
     }
 

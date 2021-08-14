@@ -50,35 +50,36 @@ static void chacha_dosimd(u32 *state, u8 *dst, const u8 *src,
 {
 //	if (IS_ENABLED(CONFIG_AS_AVX512) &&
 //	    static_branch_likely(&chacha_use_avx512vl)) {
-//		while (bytes >= CHACHA_BLOCK_SIZE * 8) {
-//			chacha_8block_xor_avx512vl(state, dst, src, bytes,
-//						   nrounds);
-//			bytes -= CHACHA_BLOCK_SIZE * 8;
-//			src += CHACHA_BLOCK_SIZE * 8;
-//			dst += CHACHA_BLOCK_SIZE * 8;
-//			state[12] += 8;
-//		}
-//		if (bytes > CHACHA_BLOCK_SIZE * 4) {
-//			chacha_8block_xor_avx512vl(state, dst, src, bytes,
-//						   nrounds);
-//			state[12] += chacha_advance(bytes, 8);
-//			return;
-//		}
-//		if (bytes > CHACHA_BLOCK_SIZE * 2) {
-//			chacha_4block_xor_avx512vl(state, dst, src, bytes,
-//						   nrounds);
-//			state[12] += chacha_advance(bytes, 4);
-//			return;
-//		}
-//		if (bytes) {
-//			chacha_2block_xor_avx512vl(state, dst, src, bytes,
-//						   nrounds);
-//			state[12] += chacha_advance(bytes, 2);
-//			return;
-//		}
+#ifdef __AVX512F__
+		while (bytes >= CHACHA_BLOCK_SIZE * 8) {
+			chacha_8block_xor_avx512vl(state, dst, src, bytes,
+						   nrounds);
+			bytes -= CHACHA_BLOCK_SIZE * 8;
+			src += CHACHA_BLOCK_SIZE * 8;
+			dst += CHACHA_BLOCK_SIZE * 8;
+			state[12] += 8;
+		}
+		if (bytes > CHACHA_BLOCK_SIZE * 4) {
+			chacha_8block_xor_avx512vl(state, dst, src, bytes,
+						   nrounds);
+			state[12] += chacha_advance(bytes, 8);
+			return;
+		}
+		if (bytes > CHACHA_BLOCK_SIZE * 2) {
+			chacha_4block_xor_avx512vl(state, dst, src, bytes,
+						   nrounds);
+			state[12] += chacha_advance(bytes, 4);
+			return;
+		}
+		if (bytes) {
+			chacha_2block_xor_avx512vl(state, dst, src, bytes,
+						   nrounds);
+			state[12] += chacha_advance(bytes, 2);
+			return;
+		}
+#endif
 //	}
 
-//	if (static_branch_likely(&chacha_use_avx2))
 	{
 		while (bytes >= CHACHA_BLOCK_SIZE * 8) {
 			chacha_8block_xor_avx2(state, dst, src, bytes, nrounds);
