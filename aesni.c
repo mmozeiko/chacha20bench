@@ -1,5 +1,7 @@
 #include <stdint.h>
-#include <intrin.h>
+#include <stddef.h>
+#include <tmmintrin.h>
+#include <wmmintrin.h>
 
 #define aesni_fun static __attribute__ ((__target__("aes")))
 

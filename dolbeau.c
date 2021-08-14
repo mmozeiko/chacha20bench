@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 
 // http://www.dolbeau.name/dolbeau/crypto/crypto_core-intrinsics.tgz
 // http://bench.cr.yp.to/supercop/supercop-20210604.tar.xz

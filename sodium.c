@@ -1,9 +1,17 @@
 #include <stdint.h>
+#include <stddef.h>
 #include <string.h>
+#include <immintrin.h>
 
 // https://github.com/jedisct1/libsodium/tree/master/src/libsodium/crypto_stream/chacha20/dolbeau
 
 #define SODIUM_STATIC
+#ifndef _MSC_VER
+#define HAVE_AVX2INTRIN_H 1
+#define HAVE_EMMINTRIN_H  1
+#define HAVE_TMMINTRIN_H  1
+#define HAVE_SMMINTRIN_H  1
+#endif
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"

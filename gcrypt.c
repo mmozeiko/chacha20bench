@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <intrin.h>
+#include <stddef.h>
 
 // https://github.com/gpg/libgcrypt/blob/master/cipher/chacha20.c
 // https://github.com/gpg/libgcrypt/blob/master/cipher/chacha20-amd64-avx2.S
@@ -39,7 +39,7 @@ static void buf_put_he64(void* ptr, u64 x) { *(u64*)ptr = x; }
 #define buf_get_he64(ptr) (*(u64*)(ptr))
 
 #define log_info(...)
-#define log_error(...) __debugbreak()
+#define log_error(...)
 #define _gcry_burn_stack(...)
 #define gcry_assert(...)
 

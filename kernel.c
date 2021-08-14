@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 
 // https://github.com/torvalds/linux/blob/master/arch/x86/crypto/chacha_glue.c
 // https://github.com/torvalds/linux/blob/master/arch/x86/crypto/chacha-avx2-x86_64.S

@@ -1,5 +1,5 @@
-
 #include <stdint.h>
+#include <stddef.h>
 
 // https://cr.yp.to/chacha.html
 // https://cr.yp.to/streamciphers/timings/estreambench/submissions/salsa20/chacha8/merged/chacha.c

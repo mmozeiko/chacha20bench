@@ -1,6 +1,6 @@
 #include <stdint.h>
+#include <stddef.h>
 #include <string.h>
-#include <intrin.h>
 
 // https://github.com/openssl/openssl/blob/master/include/crypto/chacha.h
 // https://github.com/openssl/openssl/blob/master/providers/implementations/ciphers/cipher_chacha20.h

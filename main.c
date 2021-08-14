@@ -1,8 +1,16 @@
-#include <windows.h>
 #include <stdint.h>
+#include <stddef.h>
+#include <string.h>
 #include <stdio.h>
+
+#ifdef _WIN32
+#include <windows.h>
 #define _m_prefetchw _m_prefetchw1
 #include <intrin.h>
+#else
+#include <sys/mman.h>
+#include <x86intrin.h>
+#endif
 
 void chacha20_ref(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size);
 void chacha20_dolbeau(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size);
@@ -73,7 +81,11 @@ int main()
     size_t iters = 1024*1024;
     
     size_t size = 4096;
+#ifdef WIN32
     uint8_t* input = VirtualAlloc(NULL, size * 2, MEM_COMMIT, PAGE_READWRITE);
+#else
+    uint8_t* input = mmap(NULL, size * 2, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+#endif
     uint8_t* output = input + size;
 
     uint8_t key[32];
