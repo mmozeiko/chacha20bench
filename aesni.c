@@ -5,9 +5,6 @@
 
 #define aesni_fun static __attribute__ ((__target__("aes")))
 
-// this may be not completely correct due to how counter is incremented
-// I have not checked result, use this only for benchmarking
-
 // https://www.intel.com/content/dam/doc/white-paper/advanced-encryption-standard-new-instructions-set-paper.pdf
 
 aesni_fun void KEY_256_ASSIST_1(__m128i* temp1, __m128i * temp2)
@@ -80,19 +77,21 @@ aesni_fun void AES_256_Key_Expansion(const unsigned char *userkey,  unsigned cha
     Key_Schedule[14]=temp1;
 }
 
-aesni_fun void AES_CTR_encrypt(const unsigned char *in, unsigned char *out, const unsigned char ivec[8], const unsigned char nonce[8], unsigned long length, const unsigned char *key, int number_of_rounds)
+aesni_fun void AES_CTR_encrypt(const unsigned char *in, unsigned char *out, uint32_t counter, unsigned long length, const unsigned char *key, int number_of_rounds)
 {
     int i,j; 
     if (length%16) length = length/16 + 1;
     else           length/=16;
-    __m128i ONE = _mm_set_epi32(0,1,0,0);
-    __m128i BSWAP_EPI64 = _mm_setr_epi8(7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8);
-    __m128i ctr_block = _mm_set_epi64x(*(int64_t*)ivec, *(int64_t*)nonce);
-    ctr_block = _mm_shuffle_epi8(ctr_block, BSWAP_EPI64);
-    ctr_block = _mm_add_epi64(ctr_block, ONE);
+
+    // these counter calculations matches openssl aesni implementation
+    __m128i ONE = _mm_setr_epi32(0,0,0,1);
+    __m128i BSWAP32 = _mm_setr_epi8(3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12);
+    __m128i ctr_block = _mm_setr_epi32(0, 0, 0, counter);
+    ctr_block = _mm_shuffle_epi8(ctr_block, BSWAP32);
+
     for(i=0; i < length; i++)
     {
-        __m128i tmp = _mm_shuffle_epi8(ctr_block, BSWAP_EPI64);
+        __m128i tmp = _mm_shuffle_epi8(ctr_block, BSWAP32);
         ctr_block = _mm_add_epi64(ctr_block, ONE);
         tmp = _mm_xor_si128(tmp, ((__m128i*)key)[0]);
         for (j=1; j <number_of_rounds; j++)
@@ -109,6 +108,5 @@ void aes256ni(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_
 {
     unsigned char __attribute__((aligned(16))) ctx[16*15];
     AES_256_Key_Expansion(key, ctx);
-    uint8_t iv[8] = { 0 };
-    AES_CTR_encrypt(input, output, iv, (uint8_t*)&counter, size, ctx, 14);
+    AES_CTR_encrypt(input, output, (uint32_t)counter, size, ctx, 14);
 }

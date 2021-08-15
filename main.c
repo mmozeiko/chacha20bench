@@ -89,7 +89,7 @@ void test(function f, const uint8_t* key, uint64_t counter, const uint8_t* input
             printf("%02hhx", output[size-16+i]);
         }
 
-        if (output != test_ref)
+        if (output != test_ref && f.f != &aes256ni && f.f != &aes256ni_openssl)
         {
             printf(" %s", memcmp(output, test_ref, size) == 0 ? "OK" : "** ERROR **");
         }
@@ -150,7 +150,7 @@ int main()
     for (int i=0; i<32; i++) key[i] = (uint8_t)i;
 
     printf("*** TESTS (check if bytes match) ***\n");
-    for (size_t i=0; i<FUNCTION_COUNT-2; i++)
+    for (size_t i=0; i<FUNCTION_COUNT; i++)
     {
         test(functions[i], key, 0xfedcba876543210, input, i==0 ? test_ref : output, size);
         memset(output, 0, size);
