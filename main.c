@@ -25,6 +25,7 @@ FN(chacha20_openssl_avx512);
 FN(chacha20_gcrypt);
 FN(chacha20_nss);
 FN(aes256ni);
+FN(aes256ni_openssl);
 typedef FN(fnptr);
 #undef FN
 
@@ -35,17 +36,18 @@ typedef struct {
 } function;
 
 static function functions[] = {
-    { "ref",            &chacha20_ref,             0 },
-    { "dolbeau",        &chacha20_dolbeau,         0 },
-    { "dolbeau-avx512", &chacha20_dolbeau_avx512,  1 },
-    { "sodium",         &chacha20_sodium,          0 },
-    { "kernel",         &chacha20_kernel,          0 },
-    { "kernel-avx512",  &chacha20_kernel_avx512,   1 },
-    { "openssl",        &chacha20_openssl,         0 },
-    { "openssl-avx512", &chacha20_openssl,         1 },
-    { "gcrypt",         &chacha20_gcrypt,          0 },
-    { "nss",            &chacha20_nss,             0 },
-    { "aes256ni",       &aes256ni,                 0 },
+    { "ref",              &chacha20_ref,             0 },
+    { "dolbeau",          &chacha20_dolbeau,         0 },
+    { "dolbeau-avx512",   &chacha20_dolbeau_avx512,  1 },
+    { "sodium",           &chacha20_sodium,          0 },
+    { "kernel",           &chacha20_kernel,          0 },
+    { "kernel-avx512",    &chacha20_kernel_avx512,   1 },
+    { "openssl",          &chacha20_openssl,         0 },
+    { "openssl-avx512",   &chacha20_openssl,         1 },
+    { "gcrypt",           &chacha20_gcrypt,          0 },
+    { "nss",              &chacha20_nss,             0 },
+    { "aes256ni",         &aes256ni,                 0 },
+    { "aes256ni_openssl", &aes256ni_openssl,         0 },
 };
 
 #define FUNCTION_COUNT (sizeof(functions)/sizeof(*functions))
@@ -73,7 +75,7 @@ void test(function f, const uint8_t* key, uint64_t counter, const uint8_t* input
 {
     if (f.avx512 && !HAS_AVX512)
     {
-        printf("%-15s N/A\n", f.name);
+        printf("%-18s N/A\n", f.name);
     }
     else
     { 
@@ -81,7 +83,7 @@ void test(function f, const uint8_t* key, uint64_t counter, const uint8_t* input
         f.f(key, counter, input, output, size);
 
         // print last 16 bytes
-        printf("%-15s ", f.name);
+        printf("%-18s ", f.name);
         for (size_t i=0; i<16; i++)
         {
             printf("%02hhx", output[size-16+i]);
@@ -108,7 +110,7 @@ void bench(function f, const uint8_t* key, uint64_t counter, const uint8_t* inpu
 {
     if (f.avx512 && !HAS_AVX512)
     {
-        printf("%-15s N/A\n", f.name);
+        printf("%-18s N/A\n", f.name);
     }
     else
     {
@@ -119,7 +121,7 @@ void bench(function f, const uint8_t* key, uint64_t counter, const uint8_t* inpu
         run_bench(f.f, key, counter, input, output, size, iters);
         uint64_t b = __rdtscp(&tmp);
         
-        printf("%-15s %.2f cycles/byte\n", f.name, (double)(b - a) / size / iters);
+        printf("%-18s %.2f cycles/byte\n", f.name, (double)(b - a) / size / iters);
     }
 }
 
@@ -148,7 +150,7 @@ int main()
     for (int i=0; i<32; i++) key[i] = (uint8_t)i;
 
     printf("*** TESTS (check if bytes match) ***\n");
-    for (size_t i=0; i<FUNCTION_COUNT-1; i++)
+    for (size_t i=0; i<FUNCTION_COUNT-2; i++)
     {
         test(functions[i], key, 0xfedcba876543210, input, i==0 ? test_ref : output, size);
         memset(output, 0, size);
