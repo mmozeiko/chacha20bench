@@ -1,7 +1,9 @@
 @echo off
 
-clang-cl -c -Z7 -O2 -arch:AVX512 dolbeau.c -Fodolbeau_avx512.o
-clang-cl -c -Z7 -O2 -arch:AVX512 kernel.c -Fokernel_avx512.o
+clang-cl -c -Z7 -O2 -mavx512f dolbeau.c -Fodolbeau_avx512.o
+clang-cl -c -Z7 -O2 -mavx512f kernel.c -Fokernel_avx512.o
+clang-cl -c -Z7 -O2 -mvaes -mavx2 vaes_avx2.c -Fovaes_avx2.o
+clang-cl -c -Z7 -O2 -mvaes -mavx512f -mavx512bw vaes_avx512.c -Fovaes_avx512.o
 
 clang-cl.exe                        ^
   -Z7 -O2 -W3 -arch:AVX2            ^
@@ -26,6 +28,8 @@ clang-cl.exe                        ^
   openssl/aesni-x86_64.S            ^
   gcrypt/chacha20-amd64-avx2.S      ^
   gcrypt/chacha20-amd64-ssse3.S     ^
+  vaes_avx2.o                       ^
+  vaes_avx512.o                     ^
   -Febench.exe                      ^
   -link -stack:10485760,10485760
 

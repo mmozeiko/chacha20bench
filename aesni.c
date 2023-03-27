@@ -89,18 +89,24 @@ aesni_fun void AES_CTR_encrypt(const unsigned char *in, unsigned char *out, uint
     __m128i ctr_block = _mm_setr_epi32(0, 0, 0, counter);
     ctr_block = _mm_shuffle_epi8(ctr_block, BSWAP32);
 
+    __m128i k[15];
+    for (int j = 0; j <= number_of_rounds; j++)
+    {
+        k[j] = ((__m128i*)key)[j];
+    }
+
     for(i=0; i < length; i++)
     {
         __m128i tmp = _mm_shuffle_epi8(ctr_block, BSWAP32);
         ctr_block = _mm_add_epi64(ctr_block, ONE);
-        tmp = _mm_xor_si128(tmp, ((__m128i*)key)[0]);
+        tmp = _mm_xor_si128(tmp, k[0]);
         for (j=1; j <number_of_rounds; j++)
         {
-            tmp = _mm_aesenc_si128 (tmp, ((__m128i*)key)[j]);
+            tmp = _mm_aesenc_si128 (tmp, k[j]);
         }
-        tmp = _mm_aesenclast_si128 (tmp, ((__m128i*)key)[j]);
-        tmp = _mm_xor_si128(tmp,_mm_loadu_si128(&((__m128i*)in)[i]));
-        _mm_storeu_si128 (&((__m128i*)out)[i],tmp);
+        tmp = _mm_aesenclast_si128 (tmp, k[j]);
+        tmp = _mm_xor_si128(tmp,_mm_loadu_si128((__m128i*)(in + i*16)));
+        _mm_storeu_si128 ((__m128i*)(out + i * 16),tmp);
     }
 }
   
