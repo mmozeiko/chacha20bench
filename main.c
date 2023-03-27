@@ -179,7 +179,7 @@ int main()
     unsigned int eax, ebx, ecx, edx;
     __cpuid_count(7, 0, eax, ebx, ecx, edx);
     HAS_AVX512 = (ebx & (1 << 16)) != 0;
-    HAS_VAES = (ebx & (1<<5)) != 0;
+    HAS_VAES = (ecx & (1 << 9)) != 0;
 
     size_t iters = 1024*1024;
     size_t size = 4096;
