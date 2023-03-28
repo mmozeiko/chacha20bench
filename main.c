@@ -45,46 +45,47 @@
 
 #include <cpuid.h>
 
-#define FN(name) void name(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size)
-FN(chacha20_ref);
-FN(chacha20_dolbeau);
-FN(chacha20_dolbeau_avx512);
-FN(chacha20_sodium);
-FN(chacha20_kernel);
-FN(chacha20_kernel_avx512);
-FN(chacha20_openssl);
-FN(chacha20_openssl_avx512);
-FN(chacha20_gcrypt);
-FN(chacha20_nss);
-FN(aes256ni);
-FN(aes256ni_openssl);
-FN(vaes256_avx2);
-FN(vaes256_avx512);
-typedef FN(fnptr);
-#undef FN
+#define TESTS(X) \
+    /* name                   function               aes vaes avx512 */ \
+    X("ref",                chacha20_ref,             0,   0,    0    ) \
+    X("dolbeau",            chacha20_dolbeau,         0,   0,    0    ) \
+    X("dolbeau-avx512",     chacha20_dolbeau_avx512,  0,   0,    1    ) \
+    X("sodium",             chacha20_sodium,          0,   0,    0    ) \
+    X("kernel",             chacha20_kernel,          0,   0,    0    ) \
+    X("kernel-avx512",      chacha20_kernel_avx512,   0,   0,    1    ) \
+    X("openssl",            chacha20_openssl,         0,   0,    0    ) \
+    X("openssl-avx512",     chacha20_openssl,         0,   0,    1    ) \
+    X("imb-sse4",           chacha20_intelmb_sse4,    0,   0,    0    ) \
+    X("imb-avx2",           chacha20_intelmb_avx2,    0,   0,    0    ) \
+    X("imb-avx512",         chacha20_intelmb_avx512,  0,   0,    1    ) \
+    X("gcrypt",             chacha20_gcrypt,          0,   0,    0    ) \
+    X("nss",                chacha20_nss,             0,   0,    0    ) \
+    X("aes256ni",           aes256ni,                 1,   0,    0    ) \
+    X("aes256ni-openssl",   aes256ni_openssl,         1,   0,    0    ) \
+    X("aes256ni-imb",       aes256ni_intelmb,         1,   0,    0    ) \
+    X("vaes256-avx2",       vaes256_avx2,             1,   1,    0    ) \
+    X("vaes256-avx512",     vaes256_avx512,           1,   1,    1    ) \
+    X("vaes256-imb-avx512", vaes256_intelmb_avx512,   1,   1,    1    ) \
+
+typedef void fnptr(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size);
+
+#define X(name, fn, aes, vaes, avx512) void fn(const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size);
+    TESTS(X)
+#undef X
 
 typedef struct {
     const char* name;
     fnptr* f;
-    int avx512;
+    int aes;
     int vaes;
+    int avx512;
 } function;
 
-static function functions[] = {
-    { "ref",              &chacha20_ref,             0, 0 },
-    { "dolbeau",          &chacha20_dolbeau,         0, 0 },
-    { "dolbeau-avx512",   &chacha20_dolbeau_avx512,  1, 0 },
-    { "sodium",           &chacha20_sodium,          0, 0 },
-    { "kernel",           &chacha20_kernel,          0, 0 },
-    { "kernel-avx512",    &chacha20_kernel_avx512,   1, 0 },
-    { "openssl",          &chacha20_openssl,         0, 0 },
-    { "openssl-avx512",   &chacha20_openssl,         1, 0 },
-    { "gcrypt",           &chacha20_gcrypt,          0, 0 },
-    { "nss",              &chacha20_nss,             0, 0 },
-    { "aes256ni",         &aes256ni,                 0, 0 },
-    { "aes256ni_openssl", &aes256ni_openssl,         0, 0 },
-    { "vaes256-avx2",     &vaes256_avx2,             0, 1 },
-    { "vaes256-avx512",   &vaes256_avx512,           1, 1 },
+static function functions[] =
+{
+#define X(name, fn, aes, vaes, avx512) { name, &fn, aes, vaes, avx512},
+    TESTS(X)
+#undef X
 };
 
 #define FUNCTION_COUNT (sizeof(functions)/sizeof(*functions))
@@ -108,12 +109,13 @@ static void enable_avx512(int enable)
 }
 
 static uint8_t* test_ref;
+static uint8_t* aes_ref;
 
 void test(function f, const uint8_t* key, uint64_t counter, const uint8_t* input, uint8_t* output, size_t size)
 {
     if ((f.avx512 && !HAS_AVX512) || (f.vaes && !HAS_VAES))
     {
-        printf("%-18s N/A\n", f.name);
+        printf("%-20s N/A\n", f.name);
     }
     else
     { 
@@ -121,15 +123,15 @@ void test(function f, const uint8_t* key, uint64_t counter, const uint8_t* input
         f.f(key, counter, input, output, size);
 
         // print last 16 bytes
-        printf("%-18s ", f.name);
+        printf("%-20s ", f.name);
         for (size_t i=0; i<16; i++)
         {
             printf("%02hhx", output[size-16+i]);
         }
 
-        if (output != test_ref && f.f != &aes256ni && f.f != &aes256ni_openssl && f.f != vaes256_avx2 && f.f != vaes256_avx512)
+        if (output != test_ref && output != aes_ref)
         {
-            printf(" %s", memcmp(output, test_ref, size) == 0 ? "OK" : "** ERROR **");
+            printf(" %s", memcmp(output, f.aes ? aes_ref : test_ref, size) == 0 ? "OK" : "** ERROR **");
         }
         printf("\n");
     }
@@ -148,7 +150,7 @@ void bench(function f, const uint8_t* key, uint64_t counter, const uint8_t* inpu
 {
     if ((f.avx512 && !HAS_AVX512) || (f.vaes && !HAS_VAES))
     {
-        printf("%-18s N/A\n", f.name);
+        printf("%-20s N/A\n", f.name);
     }
     else
     {
@@ -165,7 +167,7 @@ void bench(function f, const uint8_t* key, uint64_t counter, const uint8_t* inpu
         
         double cpb = (double)(b - a) / size / iters;
         double gb = (double)size * iters / secs / 1024 / 1024 / 1024;
-        printf("%-18s %.2f cycles/byte, %5.2f GiB/s\n", f.name, cpb, gb);
+        printf("%-20s %.2f cycles/byte, %5.2f GiB/s\n", f.name, cpb, gb);
     }
 }
 
@@ -178,18 +180,21 @@ int main()
 
     unsigned int eax, ebx, ecx, edx;
     __cpuid_count(7, 0, eax, ebx, ecx, edx);
-    HAS_AVX512 = (ebx & (1 << 16)) != 0;
+    HAS_AVX512 = (ebx & (1 << 16)) != 0; // TODO: this checks only for AVX512F
     HAS_VAES = (ecx & (1 << 9)) != 0;
 
     size_t iters = 1024*1024;
     size_t size = 4096;
 #ifdef WIN32
-    uint8_t* input = VirtualAlloc(NULL, size * 3, MEM_COMMIT, PAGE_READWRITE);
+    uint8_t* input = VirtualAlloc(NULL, size * 4, MEM_COMMIT, PAGE_READWRITE);
 #else
-    uint8_t* input = mmap(NULL, size * 3, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    uint8_t* input = mmap(NULL, size * 4, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 #endif
+    memset(input, 0, size*4);
+
     uint8_t* output = input + size;
     test_ref = output + size;
+    aes_ref = test_ref + size;
 
     uint8_t key[32];
     for (int i=0; i<32; i++) key[i] = (uint8_t)i;
@@ -197,7 +202,10 @@ int main()
     printf("*** TESTS (check if bytes match) ***\n");
     for (size_t i=0; i<FUNCTION_COUNT; i++)
     {
-        test(functions[i], key, 0xfedcba876543210, input, i==0 ? test_ref : output, size);
+        uint8_t* out = functions[i].f == chacha20_ref ? test_ref :
+                       functions[i].f == aes256ni     ? aes_ref  :
+                       output;
+        test(functions[i], key, 0xfedcba876543210, input, out, size);
         memset(output, 0, size);
     }
 
